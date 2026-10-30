@@ -1,0 +1,23 @@
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+#
+
+pre-push:
+  jobs:
+    - name: packages audit
+      tags:
+        - security
+      run: yarn audit
+
+    - name: test
+      tags:
+        - test
+      run: yarn test
+
+pre-commit:
+  parallel: true
+  jobs:
+    - run: yarn lint {staged_files}
+      glob: "*.{js,ts,jsx,tsx}"
