@@ -10,6 +10,12 @@ export default defineConfig(
     ignores: ["dist/*"],
   },
   {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: { console: "readonly" },
+    },
+  },
+  {
     plugins: {
       "simple-import-sort": simpleImportSort,
     },
