@@ -158,5 +158,13 @@
     "ui",
     "hybrid"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LAppStudio/react-toast-engine.git"
+  },
+  "homepage": "https://github.com/LAppStudio/react-toast-engine#readme",
+  "bugs": {
+    "url": "https://github.com/LAppStudio/react-toast-engine/issues"
+  },
   "license": "MIT"
 }
