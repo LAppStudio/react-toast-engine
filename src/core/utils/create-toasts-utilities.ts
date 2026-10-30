@@ -1,37 +1,37 @@
-import { createToastsStore } from "./create-toasts-store";
+import type { DefaultToastType, NewToast, ToastPatch } from "../types/toast";
+import type { ToastsStoreHook } from "../types/toasts-store";
 
-import { NewToast, Toast } from "../types/toast";
-
-type Parameters = {
-  store: ReturnType<typeof createToastsStore>;
+type Parameters<TType extends string, TData> = {
+  store: ToastsStoreHook<TType, TData>;
 };
 
-const getHelpers = (store: Parameters["store"]) => {
-  const stack = (toast: NewToast) => store.getState().stack(toast);
-  const remove = (toastId: Toast["id"]) => store.getState().remove(toastId);
-  const pop = () => store.getState().pop();
+const getHelpers = <TType extends string, TData>(
+  store: ToastsStoreHook<TType, TData>,
+) => ({
+  stack: (toast: NewToast<TType, TData>) => store.getState().stack(toast),
+  update: (toastId: string, patch: ToastPatch<TType, TData>) =>
+    store.getState().update(toastId, patch),
+  close: (toastId: string) => store.getState().close(toastId),
+  remove: (toastId: string) => store.getState().remove(toastId),
+  pop: () => store.getState().pop(),
+  clear: () => store.getState().clear(),
+});
 
-  return { stack, remove, pop };
-};
-
-export const createToastsUtilities = ({ store: useStore }: Parameters) => {
-  const useStackToast = () => {
-    return useStore((store) => store.stack);
-  };
-  const useRemoveToast = () => {
-    return useStore((store) => store.remove);
-  };
-  const useToastsPool = () => {
-    return useStore((store) => store.pool);
-  };
+export const createToastsUtilities = <
+  TType extends string = DefaultToastType,
+  TData = unknown,
+>({
+  store,
+}: Parameters<TType, TData>) => {
+  const helpers = getHelpers(store);
 
   const hooks = {
-    useStackToast,
-    useRemoveToast,
-    useToastsPool,
+    useStackToast: () => helpers.stack,
+    useUpdateToast: () => helpers.update,
+    useCloseToast: () => helpers.close,
+    useRemoveToast: () => helpers.remove,
+    useToastsPool: () => store((state) => state.pool),
   };
-
-  const helpers = getHelpers(useStore);
 
   return { hooks, helpers };
 };

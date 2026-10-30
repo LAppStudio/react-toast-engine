@@ -1,25 +1,26 @@
-import { ElementType } from "react";
-import { StoreApi, UseBoundStore } from "zustand";
+import type { ElementType, ReactNode } from "react";
 
-import { ToastInfoType } from "./toast";
-import { ToastComponentProps } from "./toast-component";
-import { ToastsStore } from "./toasts-store";
+import type { DefaultToastType } from "./toast";
+import type { ToastComponentProps } from "./toast-component";
+import type { ToastsStoreHook } from "./toasts-store";
 
-export type ToastsComponentsByInfoType = Record<
-  ToastInfoType,
-  ElementType<ToastComponentProps>
->;
+export type ToastsComponentsByInfoType<
+  TType extends string = DefaultToastType,
+  TData = unknown,
+> = Record<TType, ElementType<ToastComponentProps<TType, TData>>>;
 
-export type ToastsRendererContextProps = {
-  children: React.ReactNode;
-  components: ToastsComponentsByInfoType;
-  store: UseBoundStore<StoreApi<ToastsStore>>;
+export type ToastsRendererContextValue = {
+  store: ToastsStoreHook<string, unknown>;
+  components: ToastsComponentsByInfoType<string, unknown>;
+  depth: number;
 };
 
 export type ToastsPoolRendererProps = {
-  children: React.ReactNode;
+  children: ReactNode;
+  /** Whether this provider is the one that renders the toasts. */
+  active: boolean;
 };
 
 export type ToastsProviderProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };

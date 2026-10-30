@@ -18,3 +18,4 @@ node_modules
 .npmrc
 dist
 .DS_Store
+*.tgz

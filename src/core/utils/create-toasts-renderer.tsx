@@ -1,17 +1,18 @@
-import { ElementType, useEffect, useId } from "react";
+import { type ElementType, useId, useMemo } from "react";
 
-import { createToastsStore } from "./create-toasts-store";
-
-import RendererProviderContext from "../providers/renderer-context";
 import {
-  ToastsComponentsByInfoType,
+  RendererContextProvider,
+  useProviderDepth,
+} from "../providers/renderer-context";
+import type {
   ToastsPoolRendererProps,
   ToastsProviderProps,
+  ToastsRendererContextValue,
 } from "../types/toasts-renderer";
+import { selectActiveProviderId } from "./select-active-provider";
+import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect";
 
-type Parameters = {
-  components: ToastsComponentsByInfoType;
-  store: ReturnType<typeof createToastsStore>;
+type Parameters = Pick<ToastsRendererContextValue, "store" | "components"> & {
   PoolRenderer: ElementType<ToastsPoolRendererProps>;
 };
 
@@ -20,26 +21,25 @@ export const createToastsRenderer = ({
   PoolRenderer,
   store,
 }: Parameters) => {
-  const useStore = store;
   const Provider = ({ children }: ToastsProviderProps) => {
     const id = useId();
-    const addProvider = useStore((store) => store.addProvider);
-    const removeProvider = useStore((store) => store.removeProvider);
-    const isCurrentProvider = useStore(
-      (store) => store.providers.length === 0 || store.providers.at(0) === id,
+    const depth = useProviderDepth() + 1;
+    const active = store(
+      ({ providers }) => selectActiveProviderId(providers) === id,
     );
 
-    useEffect(() => {
-      addProvider(id);
-      return () => {
-        removeProvider(id);
-      };
-    }, [id, addProvider, removeProvider]);
+    useIsomorphicLayoutEffect(() => {
+      const { addProvider, removeProvider } = store.getState();
+      addProvider({ id, depth });
+      return () => removeProvider(id);
+    }, [id, depth]);
+
+    const value = useMemo(() => ({ store, components, depth }), [depth]);
 
     return (
-      <RendererProviderContext components={components} store={store}>
-        {isCurrentProvider ? <PoolRenderer>{children}</PoolRenderer> : children}
-      </RendererProviderContext>
+      <RendererContextProvider value={value}>
+        <PoolRenderer active={active}>{children}</PoolRenderer>
+      </RendererContextProvider>
     );
   };
 
