@@ -82,7 +82,8 @@
     "prepublishOnly": "yarn build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:pkg": "publint --pack npm && attw --pack . --profile node16"
+    "check:pkg": "publint --pack npm && attw --pack . --profile node16",
+    "audit:bundle": "yarn build && node scripts/audit-bundle.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
