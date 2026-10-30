@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: check
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Ensure the tag is on main
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          if ! git merge-base --is-ancestor "refs/tags/$TAG_NAME" origin/main; then
+            echo "::error::Release tag $TAG_NAME is not on main"
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Resolve dist-tag
+        id: release
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "$TAG_NAME" != "v$version" ]; then
+            echo "::error::Release tag $TAG_NAME does not match package.json version v$version"
+            exit 1
+          fi
+          case "$version" in
+            *-*) semver_prerelease=true ;;
+            *) semver_prerelease=false ;;
+          esac
+          if [ "$semver_prerelease" != "$PRERELEASE" ]; then
+            echo "::error::Version $version must be released with 'Set as a pre-release' $([ "$semver_prerelease" = true ] && echo checked || echo unchecked)"
+            exit 1
+          fi
+          if [ "$PRERELEASE" = "true" ]; then dist_tag=next; else dist_tag=latest; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "dist-tag=$dist_tag" >> "$GITHUB_OUTPUT"
+          echo "Publishing $version as \`$dist_tag\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Publish to npm
+        id: publish
+        uses: JS-DevTools/npm-publish@0fd2f4369c5d6bcfcde6091a7c527d810b9b5c3f # v4.1.5
+        with:
+          tag: ${{ steps.release.outputs.dist-tag }}
+          access: public
+          provenance: true
+
+      - name: Fail when the version was already published
+        if: steps.publish.outputs.id == ''
+        run: |
+          echo "::error::Version ${{ steps.release.outputs.version }} is already on npm"
+          exit 1
+
+      - name: Attach package to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          tarball="$(npm pack --silent)"
+          gh release upload "$TAG_NAME" "$tarball" --clobber
