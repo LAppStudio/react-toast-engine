@@ -1,2 +1,3 @@
-export const createToastRandomId = (): string =>
-  Math.random().toString(36).substring(2, 9);
+let counter = 0;
+
+export const createToastId = (): string => `toast-${(++counter).toString(36)}`;

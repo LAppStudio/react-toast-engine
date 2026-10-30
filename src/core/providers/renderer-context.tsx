@@ -1,26 +1,17 @@
 import { createContext, useContext } from "react";
 
-import { ToastsRendererContextProps } from "../types/toasts-renderer";
+import type { ToastsRendererContextValue } from "../types/toasts-renderer";
 
-type ContextValues = Partial<
-  Pick<ToastsRendererContextProps, "store" | "components">
->;
+const RendererContext = createContext<ToastsRendererContextValue | null>(null);
 
-const Context = createContext<Partial<ContextValues>>({});
+export const RendererContextProvider = RendererContext.Provider;
 
-export const useRendererContext = () =>
-  useContext(Context) as Required<ContextValues>;
-
-const RendererProviderContext = ({
-  children,
-  components,
-  store,
-}: ToastsRendererContextProps) => {
-  return (
-    <Context.Provider value={{ components, store }}>
-      {children}
-    </Context.Provider>
-  );
+export const useRendererContext = () => {
+  const value = useContext(RendererContext);
+  if (!value) {
+    throw new Error("useRendererContext must be used inside a toasts Provider");
+  }
+  return value;
 };
 
-export default RendererProviderContext;
+export const useProviderDepth = () => useContext(RendererContext)?.depth ?? 0;
