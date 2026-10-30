@@ -50,6 +50,7 @@ jobs:
           TAG_NAME: ${{ github.event.release.tag_name }}
           PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
+          name="$(node -p "require('./package.json').name")"
           version="$(node -p "require('./package.json').version")"
           if [ "$TAG_NAME" != "v$version" ]; then
             echo "::error::Release tag $TAG_NAME does not match package.json version v$version"
@@ -64,9 +65,23 @@ jobs:
             exit 1
           fi
           if [ "$PRERELEASE" = "true" ]; then dist_tag=next; else dist_tag=latest; fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "dist-tag=$dist_tag" >> "$GITHUB_OUTPUT"
           echo "Publishing $version as \`$dist_tag\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Ensure the version is not on npm yet
+        env:
+          PACKAGE: ${{ steps.release.outputs.name }}@${{ steps.release.outputs.version }}
+        run: |
+          if output="$(npm view "$PACKAGE" version 2>&1)"; then
+            echo "::error::$PACKAGE is already on npm"
+            exit 1
+          fi
+          if ! printf '%s' "$output" | grep -q E404; then
+            echo "::error::Could not check $PACKAGE on npm: $output"
+            exit 1
+          fi
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -75,17 +90,25 @@ jobs:
         run: yarn build
 
       - name: Publish to npm
-        id: publish
         uses: JS-DevTools/npm-publish@0fd2f4369c5d6bcfcde6091a7c527d810b9b5c3f # v4.1.5
         with:
           tag: ${{ steps.release.outputs.dist-tag }}
           access: public
           provenance: true
 
-      - name: Fail when the version was already published
-        if: steps.publish.outputs.id == ''
+      - name: Verify the published version
+        env:
+          PACKAGE: ${{ steps.release.outputs.name }}@${{ steps.release.outputs.version }}
+          DIST_TAG: ${{ steps.release.outputs.dist-tag }}
         run: |
-          echo "::error::Version ${{ steps.release.outputs.version }} is already on npm"
+          for attempt in 1 2 3 4 5 6; do
+            if [ -n "$(npm view "$PACKAGE" version 2>/dev/null)" ]; then
+              echo "Published $PACKAGE as \`$DIST_TAG\`" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::$PACKAGE is not visible on npm after publishing"
           exit 1
 
       - name: Attach package to the release
