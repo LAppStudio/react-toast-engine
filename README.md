@@ -49,7 +49,7 @@ All platform and state packages are optional peer dependencies, so a web app nev
 | `redux` / `@reduxjs/toolkit` (only with `/redux`) | 5 / 2 |
 | `react-native` | 0.74+ |
 | `react-native-reanimated` | 4 (with `react-native-worklets` and its Babel plugin configured) |
-| `react-native-gesture-handler` | 2.20+ |
+| `react-native-gesture-handler` | 2.20+ or 3 |
 | `motion` | 11+ |
 
 ### Choosing a driver
