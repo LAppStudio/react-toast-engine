@@ -12,6 +12,10 @@
 - `storeSettings.state` to keep the toasts in Zustand (`/zustand`), Jotai (`/jotai`), Redux (`/redux`) or any `ToastsStateAdapter`.
 - `useToastsSelector` and `createMemoryState`.
 
+### Changed
+
+- Supports React Native 0.88 and Expo SDK 58: `react-native-gesture-handler` 3 is now accepted as a peer dependency, alongside 2.20+.
+
 ### Fixed
 
 - Native toasts losing their absolute positioning on React Native 0.88, which removed `StyleSheet.absoluteFillObject`.
