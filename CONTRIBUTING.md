@@ -193,6 +193,20 @@ To release:
    - Pre-release versions (`0.1.0-next.1`) must have **Set as a pre-release** checked, and are published as `next`.
 3. The workflow runs the full CI and publishes with npm provenance. It also attaches the package tarball to the release.
 
+When creating the release, **Generate release notes** groups the merged pull requests by label, as configured in `.github/release.yml`:
+
+| Label | Section |
+|---|---|
+| `breaking` | 💥 Breaking Changes |
+| `enhancement` | ✨ Features |
+| `bug` | 🐛 Bug Fixes |
+| `documentation` | 📚 Documentation |
+| `dependencies` | 📦 Dependencies |
+| `ignore-for-release` | left out |
+| anything else | 🔧 Other Changes |
+
+`enhancement`, `bug` and `documentation` are GitHub defaults. Create `breaking`, `dependencies` and `ignore-for-release` once under **Issues → Labels**. Label each pull request before merging it, and paste the matching `CHANGELOG.md` section at the top of the notes.
+
 The release fails, without publishing anything, when:
 
 - the tag is not on `main`;
