@@ -5,6 +5,7 @@ import {
   type SwipeDismissConfig,
 } from "../gestures/swipe-config";
 import { useToastItem } from "../hooks/use-toast-item";
+import { useToastsSelector } from "../hooks/use-toasts-selector";
 import {
   resolveStackConfig,
   type StackLayoutConfig,
@@ -60,7 +61,7 @@ export const ToastPoolItems = ({
   ...shared
 }: ToastPoolItemsProps) => {
   const { store } = useRendererContext();
-  const pool = store((state) => state.pool);
+  const pool = useToastsSelector(store.pool, (value) => value);
   const resolvedSwipe = useMemo(() => resolveSwipeConfig(swipe), [swipe]);
   const resolvedStack = useMemo(() => resolveStackConfig(stack), [stack]);
   const openIds = pool

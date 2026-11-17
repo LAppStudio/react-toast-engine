@@ -67,6 +67,36 @@
         "default": "./dist/web-motion.cjs"
       }
     },
+    "./zustand": {
+      "import": {
+        "types": "./dist/zustand.d.ts",
+        "default": "./dist/zustand.js"
+      },
+      "require": {
+        "types": "./dist/zustand.d.cts",
+        "default": "./dist/zustand.cjs"
+      }
+    },
+    "./jotai": {
+      "import": {
+        "types": "./dist/jotai.d.ts",
+        "default": "./dist/jotai.js"
+      },
+      "require": {
+        "types": "./dist/jotai.d.cts",
+        "default": "./dist/jotai.cjs"
+      }
+    },
+    "./redux": {
+      "import": {
+        "types": "./dist/redux.d.ts",
+        "default": "./dist/redux.js"
+      },
+      "require": {
+        "types": "./dist/redux.d.cts",
+        "default": "./dist/redux.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -88,12 +118,14 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
+    "@reduxjs/toolkit": "^2.13.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^10.1.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
+    "jotai": "^2.20.3",
     "jsdom": "^30.1.3",
     "lefthook": "^2.2.2",
     "motion": "^14.9.0",
@@ -104,6 +136,7 @@
     "react-native-gesture-handler": "~2.30.0",
     "react-native-reanimated": "~4.2.1",
     "react-native-worklets": "~0.7.2",
+    "redux": "^5.0.1",
     "tsdown": "^0.21.4",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.57.2",
@@ -112,6 +145,7 @@
     "zustand": "^5.0.0"
   },
   "peerDependencies": {
+    "jotai": "^2.0.0",
     "motion": ">=11.0.0",
     "react": "^18.2.0 || ^19.0.0",
     "react-dom": "^18.2.0 || ^19.0.0",
@@ -139,6 +173,12 @@
     },
     "motion": {
       "optional": true
+    },
+    "zustand": {
+      "optional": true
+    },
+    "jotai": {
+      "optional": true
     }
   },
   "maintainers": [
@@ -153,6 +193,8 @@
     "alert",
     "headless",
     "zustand",
+    "jotai",
+    "redux",
     "reanimated",
     "gesture-handler",
     "ui",

@@ -12,21 +12,20 @@ const toast = (title: string, extra: Partial<NewToast> = {}): NewToast => ({
 
 const withProvider = (settings?: Parameters<typeof createToastsStore>[0]) => {
   const store = createToastsStore(settings);
-  store.getState().addProvider({ id: "root", depth: 1 });
+  store.addProvider({ id: "root", depth: 1 });
   return store;
 };
 
 const open = (store: ReturnType<typeof createToastsStore>) =>
-  store
-    .getState()
-    .pool.filter(({ status }) => status === "open")
+  store.pool
+    .getState().filter(({ status }) => status === "open")
     .map(({ title }) => title);
 
 describe("createToastsStore", () => {
   it("stacks toasts with defaults and returns their id", () => {
     const store = withProvider({ defaults: { durationInMs: 1000 } });
-    const id = store.getState().stack(toast("a"));
-    expect(store.getState().pool).toMatchObject([
+    const id = store.stack(toast("a"));
+    expect(store.pool.getState()).toMatchObject([
       { id, title: "a", durationInMs: 1000, status: "open", version: 0 },
     ]);
   });
@@ -34,28 +33,28 @@ describe("createToastsStore", () => {
   it("closes only the oldest toasts beyond the pool limit", () => {
     const store = withProvider({ poolLimit: 3 });
     ["a", "b", "c", "d", "e"].forEach((title) =>
-      store.getState().stack(toast(title)),
+      store.stack(toast(title)),
     );
     expect(open(store)).toEqual(["c", "d", "e"]);
   });
 
   it("closes in two phases and leaves the pool on finalize", () => {
     const store = withProvider();
-    const id = store.getState().stack(toast("a"));
-    store.getState().close(id);
-    expect(store.getState().pool[0]).toMatchObject({
+    const id = store.stack(toast("a"));
+    store.close(id);
+    expect(store.pool.getState()[0]).toMatchObject({
       status: "closing",
       closeReason: "programmatic",
     });
-    store.getState().finalize(id);
-    expect(store.getState().pool).toEqual([]);
+    store.finalize(id);
+    expect(store.pool.getState()).toEqual([]);
   });
 
   it("removes immediately when no provider can animate the exit", () => {
     const store = createToastsStore();
-    const id = store.getState().stack(toast("a"));
-    store.getState().close(id);
-    expect(store.getState().pool).toEqual([]);
+    const id = store.stack(toast("a"));
+    store.close(id);
+    expect(store.pool.getState()).toEqual([]);
   });
 
   it("calls onDismiss and onAutoClose only for their reasons", () => {
@@ -63,12 +62,12 @@ describe("createToastsStore", () => {
     const onAutoClose = vi.fn();
     const store = withProvider();
     const actions = { onDismiss, onAutoClose };
-    const dismissed = store.getState().stack(toast("a", { actions }));
-    const elapsed = store.getState().stack(toast("b", { actions }));
-    const closed = store.getState().stack(toast("c", { actions }));
-    store.getState().close(dismissed, "dismiss");
-    store.getState().close(elapsed, "auto");
-    store.getState().close(closed);
+    const dismissed = store.stack(toast("a", { actions }));
+    const elapsed = store.stack(toast("b", { actions }));
+    const closed = store.stack(toast("c", { actions }));
+    store.close(dismissed, "dismiss");
+    store.close(elapsed, "auto");
+    store.close(closed);
     expect(onDismiss).toHaveBeenCalledOnce();
     expect(onDismiss).toHaveBeenCalledWith(
       expect.objectContaining({ id: dismissed }),
@@ -81,16 +80,16 @@ describe("createToastsStore", () => {
 
   it("pops the oldest open toast", () => {
     const store = withProvider();
-    ["a", "b", "c"].forEach((title) => store.getState().stack(toast(title)));
-    store.getState().pop();
+    ["a", "b", "c"].forEach((title) => store.stack(toast(title)));
+    store.pop();
     expect(open(store)).toEqual(["b", "c"]);
   });
 
   it("updates open toasts and bumps their version", () => {
     const store = withProvider();
-    const id = store.getState().stack(toast("loading"));
-    store.getState().update(id, { title: "done", infoType: "success" });
-    expect(store.getState().pool[0]).toMatchObject({
+    const id = store.stack(toast("loading"));
+    store.update(id, { title: "done", infoType: "success" });
+    expect(store.pool.getState()[0]).toMatchObject({
       title: "done",
       infoType: "success",
       version: 1,
@@ -99,12 +98,12 @@ describe("createToastsStore", () => {
 
   it("drops closing toasts when the last provider leaves", () => {
     const store = withProvider();
-    const id = store.getState().stack(toast("a"));
-    store.getState().stack(toast("b"));
-    store.getState().close(id);
-    store.getState().removeProvider("root");
+    const id = store.stack(toast("a"));
+    store.stack(toast("b"));
+    store.close(id);
+    store.removeProvider("root");
     expect(open(store)).toEqual(["b"]);
-    expect(store.getState().pool).toHaveLength(1);
+    expect(store.pool.getState()).toHaveLength(1);
   });
 });
 

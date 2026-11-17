@@ -2,6 +2,7 @@ import { StyleSheet, View } from "react-native";
 
 import { ToastPoolItems } from "../../core/components/toast-pool-items";
 import type { SwipeDismissConfig } from "../../core/gestures/swipe-config";
+import { useToastsSelector } from "../../core/hooks/use-toasts-selector";
 import type {
   StackLayoutConfig,
   ToastPosition,
@@ -58,7 +59,7 @@ export const createNativePoolRenderer = (
     const insets = useInsets();
     const reducedMotion = useReducedMotion();
     const { store } = useRendererContext();
-    const hasToasts = store((state) => state.pool.length > 0);
+    const hasToasts = useToastsSelector(store.pool, (pool) => pool.length > 0);
 
     if (!hasToasts) return null;
 

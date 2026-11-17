@@ -5,11 +5,12 @@
 
 **React Toast Engine** is a headless toast engine for **React** and **React Native**.
 
-It separates state (powered by [Zustand](https://github.com/pmndrs/zustand)) from rendering, so the same notification logic runs on web and mobile. You bring the toast UI; the engine handles stacking, timing, gestures and animations through the animation library your app already uses.
+It separates state from rendering, so the same notification logic runs on web and mobile. You bring the toast UI; the engine handles stacking, timing, gestures and animations through the animation library your app already uses.
 
 ## ✨ Key Features
 
 - 🌐 **Web and mobile:** one client, four interchangeable animation drivers.
+- 🗃️ **Bring your own state library:** a built-in store with no dependencies, or keep toasts in Zustand, Jotai or Redux.
 - 🎛️ **Bring your own animation library:** `Animated` or Reanimated on React Native, vanilla DOM or Motion on the web. You choose by import path, and only that driver ends up in your bundle.
 - 👆 **Gestures that follow your finger:** swipe and horizontal scroll move the toast 1:1, and releasing hands the gesture's velocity to the animation.
 - ✋ **You can change your mind:** stop, slow down or move back before releasing, and the toast springs back instead of being dismissed.
@@ -22,9 +23,9 @@ It separates state (powered by [Zustand](https://github.com/pmndrs/zustand)) fro
 ## 📦 Installation
 
 ```bash
-npm i @lapp-studio/react-toast-engine zustand
+npm i @lapp-studio/react-toast-engine
 # or
-yarn add @lapp-studio/react-toast-engine zustand
+yarn add @lapp-studio/react-toast-engine
 ```
 
 Then add the packages needed by the driver you pick:
@@ -36,14 +37,16 @@ Then add the packages needed by the driver you pick:
 | `@lapp-studio/react-toast-engine/web` | Vanilla DOM (default) | `react-dom` |
 | `@lapp-studio/react-toast-engine/web/motion` | [Motion](https://motion.dev) | `react-dom motion` |
 
-All platform packages are optional peer dependencies, so a web app never installs React Native, and the default native driver needs nothing beyond `react-native`.
+All platform and state packages are optional peer dependencies, so a web app never installs React Native, and the default native driver needs nothing beyond `react-native`.
 
 ### Requirements
 
 | Package | Version |
 |---|---|
 | `react` / `react-dom` | 18.2+ or 19 |
-| `zustand` | 5 |
+| `zustand` (only with `/zustand`) | 5 |
+| `jotai` (only with `/jotai`) | 2 |
+| `redux` / `@reduxjs/toolkit` (only with `/redux`) | 5 / 2 |
 | `react-native` | 0.74+ |
 | `react-native-reanimated` | 4 (with `react-native-worklets` and its Babel plugin configured) |
 | `react-native-gesture-handler` | 2.20+ |
@@ -174,6 +177,88 @@ utilities.helpers.update(id, {
 | `pop()` | Closes the oldest open toast. |
 | `clear()` | Closes every open toast. |
 | `useToastsPool()` | Subscribes to the list of toasts. |
+
+---
+
+## 🗃️ State Management
+
+By default the toasts live in a built-in store with no dependencies. To keep them in the state library your app already uses, pass an adapter as `storeSettings.state`:
+
+| Import | Library | Install |
+|---|---|---|
+| none (default) | Built-in store | nothing else |
+| `@lapp-studio/react-toast-engine/zustand` | [Zustand](https://github.com/pmndrs/zustand) | `zustand` |
+| `@lapp-studio/react-toast-engine/jotai` | [Jotai](https://jotai.org) | `jotai` |
+| `@lapp-studio/react-toast-engine/redux` | [Redux](https://redux.js.org) / Redux Toolkit | nothing else |
+
+The engine behaves the same with every adapter. Only the list of toasts goes to your store.
+
+**Zustand**, in a store of its own or in a slice of yours:
+
+```ts
+import { createZustandState } from "@lapp-studio/react-toast-engine/zustand";
+
+const state = createZustandState(); // state.store is the new Zustand store
+
+const sliceState = createZustandState({
+  store: appStore,
+  select: (app) => app.toasts,
+  update: (toasts) => ({ toasts }),
+});
+```
+
+**Jotai:**
+
+```ts
+import { createJotaiState } from "@lapp-studio/react-toast-engine/jotai";
+
+const state = createJotaiState(); // read it with useAtomValue(state.atom)
+// To use a custom store or atom: createJotaiState({ store, atom })
+```
+
+**Redux Toolkit:**
+
+```ts
+import { configureStore } from "@reduxjs/toolkit";
+import {
+  createReduxState,
+  SET_TOASTS_POOL,
+  toastsReducer,
+} from "@lapp-studio/react-toast-engine/redux";
+
+export const appStore = configureStore({
+  reducer: { toasts: toastsReducer, cart: cartReducer },
+  middleware: (getDefault) =>
+    getDefault({
+      serializableCheck: {
+        ignoredActions: [SET_TOASTS_POOL],
+        ignoredPaths: ["toasts"],
+      },
+    }),
+});
+
+const state = createReduxState(appStore, (app) => app.toasts);
+```
+
+Toasts carry their `actions` callbacks, which is why the serializable check must skip them.
+
+**Then pass the adapter to the client:**
+
+```ts
+createToastsClient({ components, PoolRenderer, storeSettings: { state } });
+```
+
+With custom toast types, give the type to the adapter as well: `createJotaiState<AppToast>()`, `createZustandState<AppToast>()` or `toastsReducer<AppToast>`.
+
+**Any other library** works through an object with three functions:
+
+```ts
+const state: ToastsPoolState = {
+  getState: () => /* the current list */,
+  setState: (next) => /* store the new list */,
+  subscribe: (listener) => /* call listener on change, return unsubscribe */,
+};
+```
 
 ---
 
@@ -354,6 +439,11 @@ A driver is a component that receives `ToastItemDriverProps` and only animates. 
 
 ---
 
+## 🔁 Migrating from 0.1.x
+
+- `zustand` is no longer required. To keep using it, pass `storeSettings: { state: createZustandState() }` from `/zustand`.
+- `client.store` is no longer a Zustand hook. Call actions directly (`store.stack(…)` instead of `store.getState().stack(…)`) and read the toasts with `store.pool.getState()` or `utilities.hooks.useToastsPool()`.
+
 ## 🔁 Migrating from 0.0.x
 
 - The default `/native` driver is now `Animated`. For the previous Reanimated behaviour, import from `/native/reanimated`.
@@ -374,6 +464,7 @@ A driver is a component that receives `ToastItemDriverProps` and only animates. 
 - [0004 — Horizontal wheel and trackpad dismissal](docs/adr/0004-wheel-swipe-dismiss.md)
 - [0005 — Which provider renders the toasts](docs/adr/0005-active-provider-selection.md)
 - [0006 — Direct manipulation physics](docs/adr/0006-direct-manipulation-physics.md)
+- [0007 — Pluggable state](docs/adr/0007-pluggable-state.md)
 
 ---
 

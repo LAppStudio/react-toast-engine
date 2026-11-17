@@ -4,6 +4,18 @@
 
 ### Breaking
 
+- `zustand` is now an optional peer dependency; the default store has no dependencies.
+- `client.store` is no longer a Zustand hook: actions are called directly and the toasts are read from `store.pool`.
+
+### Added
+
+- `storeSettings.state` to keep the toasts in Zustand (`/zustand`), Jotai (`/jotai`), Redux (`/redux`) or any `ToastsStateAdapter`.
+- `useToastsSelector` and `createMemoryState`.
+
+## 0.1.0
+
+### Breaking
+
 - `/native` now uses React Native's `Animated`; the Reanimated driver moved to `/native/reanimated`.
 - `react-native-safe-area-context` is no longer required; pass `useInsets` to `createPoolRenderer`.
 - `PoolRenderer` receives `active` and must always render `children`.

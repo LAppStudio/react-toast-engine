@@ -2,7 +2,7 @@ import type { ElementType, ReactNode } from "react";
 
 import type { DefaultToastType } from "./toast";
 import type { ToastComponentProps } from "./toast-component";
-import type { ToastsStoreHook } from "./toasts-store";
+import type { ToastsStore } from "./toasts-store";
 
 export type ToastsComponentsByInfoType<
   TType extends string = DefaultToastType,
@@ -10,7 +10,7 @@ export type ToastsComponentsByInfoType<
 > = Record<TType, ElementType<ToastComponentProps<TType, TData>>>;
 
 export type ToastsRendererContextValue = {
-  store: ToastsStoreHook<string, unknown>;
+  store: ToastsStore<string, unknown>;
   components: ToastsComponentsByInfoType<string, unknown>;
   depth: number;
 };

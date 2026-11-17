@@ -1,20 +1,21 @@
+import { useToastsSelector } from "../hooks/use-toasts-selector";
 import type { DefaultToastType, NewToast, ToastPatch } from "../types/toast";
-import type { ToastsStoreHook } from "../types/toasts-store";
+import type { ToastsStore } from "../types/toasts-store";
 
 type Parameters<TType extends string, TData> = {
-  store: ToastsStoreHook<TType, TData>;
+  store: ToastsStore<TType, TData>;
 };
 
 const getHelpers = <TType extends string, TData>(
-  store: ToastsStoreHook<TType, TData>,
+  store: ToastsStore<TType, TData>,
 ) => ({
-  stack: (toast: NewToast<TType, TData>) => store.getState().stack(toast),
+  stack: (toast: NewToast<TType, TData>) => store.stack(toast),
   update: (toastId: string, patch: ToastPatch<TType, TData>) =>
-    store.getState().update(toastId, patch),
-  close: (toastId: string) => store.getState().close(toastId),
-  remove: (toastId: string) => store.getState().remove(toastId),
-  pop: () => store.getState().pop(),
-  clear: () => store.getState().clear(),
+    store.update(toastId, patch),
+  close: (toastId: string) => store.close(toastId),
+  remove: (toastId: string) => store.remove(toastId),
+  pop: () => store.pop(),
+  clear: () => store.clear(),
 });
 
 export const createToastsUtilities = <
@@ -30,7 +31,7 @@ export const createToastsUtilities = <
     useUpdateToast: () => helpers.update,
     useCloseToast: () => helpers.close,
     useRemoveToast: () => helpers.remove,
-    useToastsPool: () => store((state) => state.pool),
+    useToastsPool: () => useToastsSelector(store.pool, (pool) => pool),
   };
 
   return { hooks, helpers };

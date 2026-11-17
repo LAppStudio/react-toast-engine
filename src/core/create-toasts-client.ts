@@ -14,7 +14,7 @@ import { createToastsUtilities } from "./utils/create-toasts-utilities";
 type Parameters<TType extends string, TData> = {
   components: ToastsComponentsByInfoType<TType, TData>;
   PoolRenderer: ElementType<ToastsPoolRendererProps>;
-  storeSettings?: Omit<ToastsStoreSettings<TType, TData>, "defaults">;
+  storeSettings?: NoInfer<Omit<ToastsStoreSettings<TType, TData>, "defaults">>;
   defaults?: ToastDefaults<TType, TData>;
 };
 
