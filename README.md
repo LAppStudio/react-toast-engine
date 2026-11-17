@@ -468,66 +468,21 @@ A driver is a component that receives `ToastItemDriverProps` and only animates. 
 
 ---
 
-## 🧪 Development
+## 🤝 Contributing
+
+Contributions are welcome! To get started:
 
 ```bash
 yarn install
-yarn dev          # build in watch mode
-yarn test         # unit tests and web driver conformance suite (Vitest + jsdom)
-yarn lint
-yarn type-check
-yarn build
-yarn check:pkg    # publint + are-the-types-wrong
-yarn audit:bundle # yarn audit limited to packages that ship with the bundle
+yarn examples:install
+yarn dev:web              # web example at http://localhost:5173
+yarn dev:mobile:ios       # native example on the iOS simulator
+yarn dev:mobile:android   # native example on Android
+yarn dev:mobile:reset     # regenerate native projects after an SDK upgrade
+yarn test
 ```
 
-`yarn audit` reports every package in the lockfile, including build and test tooling that never reaches users. `yarn audit:bundle` builds the library and keeps only the advisories for packages that ship with it:
-
-- packages imported by `dist/`, which the consuming app installs and bundles (today, the peer dependencies);
-- packages inlined into `dist/`, detected through the sourcemaps;
-- `dependencies` from `package.json`.
-
-| Option | Description |
-|---|---|
-| `--level <severity>` | Fail only at or above `info`, `low` (default), `moderate`, `high` or `critical`. |
-| `--deep` | Also include the production dependencies of those packages, such as React Native's own dependency tree. |
-| `--input <file>` | Read a saved `yarn audit --json` output instead of running the audit. |
-
-It exits with `1` when an advisory at or above the level affects the bundle, and with `2` on usage errors.
-
-### Releasing
-
-Publishing to npm is driven by GitHub Releases (`.github/workflows/release.yml`). It authenticates with npm [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so no npm token is stored in GitHub.
-
-One-time setup:
-
-- **npmjs.com:** in the package **Settings**, add a **Trusted Publisher** for GitHub Actions:
-
-  | Field | Value |
-  |---|---|
-  | Organization | `LAppStudio` |
-  | Repository | `react-toast-engine` |
-  | Workflow | `release.yml` |
-  | Environment | `npm` |
-
-- **GitHub:** under **Settings → Environments**, create `npm` and allow deployments from tags matching `v*`.
-
-To release:
-
-1. Bump `version` in `package.json` and merge it into `main`.
-2. Create a GitHub Release from `main` with the tag `v<version>`, for example `v0.1.0`.
-   - Stable versions (`0.1.0`) are published as `latest`.
-   - Pre-release versions (`0.1.0-next.1`) must have **Set as a pre-release** checked, and are published as `next`.
-3. The workflow runs the full CI and publishes with npm provenance. It also attaches the package tarball to the release.
-
-The release fails, without publishing anything, when:
-
-- the tag is not on `main`;
-- the tag does not match `package.json`;
-- the pre-release checkbox does not match the version;
-- the version is already on npm.
-
-The web drivers share one conformance suite (`src/web/__tests__/conformance.test.tsx`). The native drivers are not covered by automated tests yet and must be checked on a device.
+The example apps in `examples/` read the library straight from `src/`, so changes show up without a build. See [CONTRIBUTING.md](CONTRIBUTING.md) for the requirements, the available checks, how to test the package in your own project, and the release process.
 
 ---
 
