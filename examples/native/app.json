@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Toast Engine",
+    "slug": "react-toast-engine-example",
+    "scheme": "toastengine",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "experiments": {
+      "tsconfigPaths": false
+    },
+    "ios": {
+      "bundleIdentifier": "studio.lapp.toastengine.example"
+    },
+    "android": {
+      "package": "studio.lapp.toastengine.example"
+    }
+  }
+}

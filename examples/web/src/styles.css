@@ -1,0 +1,169 @@
+:root {
+  --bg: #f8fafc;
+  --fg: #0f172a;
+  --muted: #475569;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --accent: #2563eb;
+  --success: #15803d;
+  --error: #b91c1c;
+  --info: #1e40af;
+  color-scheme: light;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1120;
+    --fg: #e2e8f0;
+    --muted: #94a3b8;
+    --surface: #111827;
+    --border: #1f2937;
+    --accent: #60a5fa;
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.app {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 16px 96px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+nav a {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+nav a[aria-current="page"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+main p {
+  color: var(--muted);
+}
+
+button {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+.playground {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.inspector {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.inspector h2 {
+  margin: 0 0 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+}
+
+.inspector ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.toast {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: 12px;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+.toast--success {
+  background: var(--success);
+}
+
+.toast--error {
+  background: var(--error);
+}
+
+.toast--info {
+  background: var(--info);
+}
+
+.toast__content {
+  flex: 1;
+}
+
+.toast__content p {
+  margin: 4px 0 0;
+  opacity: 0.9;
+}
+
+.toast__close {
+  padding: 0 6px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(15 23 42 / 0.5);
+}
+
+.modal__panel {
+  width: min(560px, 100%);
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.modal__panel h2 {
+  margin-top: 0;
+}

@@ -105,6 +105,13 @@
   "sideEffects": false,
   "scripts": {
     "dev": "tsdown --watch",
+    "dev:web": "yarn --cwd examples/web dev",
+    "dev:mobile": "yarn --cwd examples/native start",
+    "dev:mobile:ios": "yarn --cwd examples/native ios",
+    "dev:mobile:android": "yarn --cwd examples/native android",
+    "dev:mobile:reset": "yarn --cwd examples/native reset",
+    "examples:install": "yarn --cwd examples/web install && yarn --cwd examples/native install",
+    "examples:type-check": "yarn --cwd examples/web type-check && yarn --cwd examples/native type-check",
     "build": "tsdown",
     "lint": "eslint .",
     "lint:fix": "eslint --fix",
