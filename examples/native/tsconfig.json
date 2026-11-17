@@ -1,0 +1,18 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "@lapp-studio/react-toast-engine": ["../../src/core/index.ts"],
+      "@lapp-studio/react-toast-engine/core": ["../../src/core/index.ts"],
+      "@lapp-studio/react-toast-engine/native": ["../../src/native/index.ts"],
+      "@lapp-studio/react-toast-engine/native/reanimated": ["../../src/native/reanimated.ts"],
+      "@lapp-studio/react-toast-engine/zustand": ["../../src/state/zustand.ts"],
+      "@lapp-studio/react-toast-engine/jotai": ["../../src/state/jotai.ts"],
+      "@lapp-studio/react-toast-engine/redux": ["../../src/state/redux.ts"]
+    }
+  },
+  "include": ["index.ts", "src"]
+}

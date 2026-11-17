@@ -19,3 +19,8 @@ node_modules
 dist
 .DS_Store
 *.tgz
+
+# Example apps
+.expo
+examples/native/ios
+examples/native/android

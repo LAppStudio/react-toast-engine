@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": ["vite/client"],
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "react-dom/*": ["./node_modules/@types/react-dom/*"],
+      "@lapp-studio/react-toast-engine": ["../../src/core/index.ts"],
+      "@lapp-studio/react-toast-engine/core": ["../../src/core/index.ts"],
+      "@lapp-studio/react-toast-engine/web": ["../../src/web/index.ts"],
+      "@lapp-studio/react-toast-engine/web/motion": ["../../src/web/motion.ts"],
+      "@lapp-studio/react-toast-engine/zustand": ["../../src/state/zustand.ts"],
+      "@lapp-studio/react-toast-engine/jotai": ["../../src/state/jotai.ts"],
+      "@lapp-studio/react-toast-engine/redux": ["../../src/state/redux.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}

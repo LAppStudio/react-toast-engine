@@ -7,7 +7,23 @@ export default defineConfig(
   eslint.configs.recommended,
   tseslint.configs.recommended,
   {
-    ignores: ["dist/*"],
+    ignores: [
+      "dist/*",
+      "examples/*/dist/*",
+      "examples/native/.expo/*",
+      "examples/native/ios/*",
+      "examples/native/android/*",
+    ],
+  },
+  {
+    files: ["examples/**/*.config.js"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: { require: "readonly", module: "writable", __dirname: "readonly" },
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
   },
   {
     files: ["scripts/**/*.mjs"],
