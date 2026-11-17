@@ -12,6 +12,10 @@
 - `storeSettings.state` to keep the toasts in Zustand (`/zustand`), Jotai (`/jotai`), Redux (`/redux`) or any `ToastsStateAdapter`.
 - `useToastsSelector` and `createMemoryState`.
 
+### Fixed
+
+- Native toasts losing their absolute positioning on React Native 0.88, which removed `StyleSheet.absoluteFillObject`.
+
 ## 0.1.0
 
 ### Breaking

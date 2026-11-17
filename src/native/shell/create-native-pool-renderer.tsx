@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   layer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 1000,
     elevation: 1000,
   },
