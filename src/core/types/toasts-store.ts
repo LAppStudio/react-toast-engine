@@ -1,13 +1,11 @@
-import type { StoreApi, UseBoundStore } from "zustand";
-
 import type {
   DefaultToastType,
   NewToast,
-  Toast,
   ToastCloseReason,
   ToastDefaults,
   ToastPatch,
 } from "./toast";
+import type { ToastsPoolState, ToastsStateAdapter } from "./toasts-state";
 
 export type ToastsProvider = {
   id: string;
@@ -18,8 +16,10 @@ export type ToastsStore<
   TType extends string = DefaultToastType,
   TData = unknown,
 > = {
-  pool: Toast<TType, TData>[];
-  providers: ToastsProvider[];
+  /** The toasts, in the adapter given as `state`. */
+  pool: ToastsPoolState<TType, TData>;
+  /** Mounted Providers. Internal bookkeeping, always kept in memory. */
+  providers: ToastsStateAdapter<ToastsProvider[]>;
 
   /** Adds a toast and returns its id. Closes the oldest open toasts beyond `poolLimit`. */
   stack: (toast: NewToast<TType, TData>) => string;
@@ -50,9 +50,9 @@ export type ToastsStoreSettings<
    */
   poolLimit?: number;
   defaults?: ToastDefaults<TType, TData>;
+  /**
+   * Where the pool lives: an adapter from `/zustand`, `/jotai`, `/redux`, or your own.
+   * @default createMemoryState([])
+   */
+  state?: ToastsPoolState<TType, TData>;
 };
-
-export type ToastsStoreHook<
-  TType extends string = DefaultToastType,
-  TData = unknown,
-> = UseBoundStore<StoreApi<ToastsStore<TType, TData>>>;

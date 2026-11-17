@@ -1,9 +1,9 @@
-import { create } from "zustand";
-
+import { createMemoryState } from "../state/create-memory-state";
 import type { DefaultToastType, Toast, ToastCloseReason } from "../types/toast";
+import type { ToastsPool } from "../types/toasts-state";
 import type {
+  ToastsProvider,
   ToastsStore,
-  ToastsStoreHook,
   ToastsStoreSettings,
 } from "../types/toasts-store";
 import { createToastId } from "./create-toast-id";
@@ -25,110 +25,107 @@ export const createToastsStore = <
 >({
   poolLimit = DEFAULT_POOL_LIMIT,
   defaults = {},
-}: ToastsStoreSettings<TType, TData> = {}): ToastsStoreHook<TType, TData> =>
-  create<ToastsStore<TType, TData>>((set, get) => {
-    const limit = Math.max(1, poolLimit);
+  state = createMemoryState<ToastsPool<TType, TData>>([]),
+}: ToastsStoreSettings<TType, TData> = {}): ToastsStore<TType, TData> => {
+  const limit = Math.max(1, poolLimit);
+  const providers = createMemoryState<ToastsProvider[]>([]);
 
-    const close = (toastId: string, reason: ToastCloseReason = "programmatic") => {
-      const toast = get().pool.find(
-        ({ id, status }) => id === toastId && status === "open",
-      );
-      if (!toast) return;
-      const closing: Toast<TType, TData> = {
-        ...toast,
-        status: "closing",
-        closeReason: reason,
-      };
-      set(({ pool, providers }) => ({
-        pool:
-          providers.length === 0
-            ? pool.filter(({ id }) => id !== toastId)
-            : pool.map((item) => (item.id === toastId ? closing : item)),
-      }));
-      notifyClose(closing, reason);
+  const setPool = (
+    change: (pool: ToastsPool<TType, TData>) => ToastsPool<TType, TData>,
+  ) => state.setState(change(state.getState()));
+
+  const close = (toastId: string, reason: ToastCloseReason = "programmatic") => {
+    const toast = state
+      .getState()
+      .find(({ id, status }) => id === toastId && status === "open");
+    if (!toast) return;
+    const closing: Toast<TType, TData> = {
+      ...toast,
+      status: "closing",
+      closeReason: reason,
     };
+    setPool((pool) =>
+      providers.getState().length === 0
+        ? pool.filter(({ id }) => id !== toastId)
+        : pool.map((item) => (item.id === toastId ? closing : item)),
+    );
+    notifyClose(closing, reason);
+  };
 
-    return {
-      pool: [],
-      providers: [],
+  return {
+    pool: state,
+    providers,
 
-      stack: (toast) => {
-        const id = createToastId();
-        const open = get().pool.filter(({ status }) => status === "open");
-        open
-          .slice(0, Math.max(0, open.length - limit + 1))
-          .forEach((item) => close(item.id));
-        set(({ pool }) => ({
-          pool: [
-            ...pool,
-            {
-              durationInMs: DEFAULT_DURATION_IN_MS,
-              ...defaults,
-              ...toast,
-              actions: { ...defaults.actions, ...toast.actions },
-              id,
-              status: "open",
-              version: 0,
-            },
-          ],
-        }));
-        return id;
-      },
+    stack: (toast) => {
+      const id = createToastId();
+      const open = state.getState().filter(({ status }) => status === "open");
+      open
+        .slice(0, Math.max(0, open.length - limit + 1))
+        .forEach((item) => close(item.id));
+      setPool((pool) => [
+        ...pool,
+        {
+          durationInMs: DEFAULT_DURATION_IN_MS,
+          ...defaults,
+          ...toast,
+          actions: { ...defaults.actions, ...toast.actions },
+          id,
+          status: "open",
+          version: 0,
+        },
+      ]);
+      return id;
+    },
 
-      update: (toastId, patch) =>
-        set(({ pool }) => ({
-          pool: pool.map((toast) =>
-            toast.id === toastId && toast.status === "open"
-              ? {
-                  ...toast,
-                  ...patch,
-                  actions: { ...toast.actions, ...patch.actions },
-                  version: toast.version + 1,
-                }
-              : toast,
-          ),
-        })),
+    update: (toastId, patch) =>
+      setPool((pool) =>
+        pool.map((toast) =>
+          toast.id === toastId && toast.status === "open"
+            ? {
+                ...toast,
+                ...patch,
+                actions: { ...toast.actions, ...patch.actions },
+                version: toast.version + 1,
+              }
+            : toast,
+        ),
+      ),
 
-      close,
+    close,
 
-      finalize: (toastId) =>
-        set(({ pool }) => ({
-          pool: pool.filter(
-            ({ id, status }) => id !== toastId || status !== "closing",
-          ),
-        })),
+    finalize: (toastId) =>
+      setPool((pool) =>
+        pool.filter(({ id, status }) => id !== toastId || status !== "closing"),
+      ),
 
-      remove: (toastId) =>
-        set(({ pool }) => ({ pool: pool.filter(({ id }) => id !== toastId) })),
+    remove: (toastId) =>
+      setPool((pool) => pool.filter(({ id }) => id !== toastId)),
 
-      pop: () => {
-        const oldest = get().pool.find(({ status }) => status === "open");
-        if (oldest) close(oldest.id);
-      },
+    pop: () => {
+      const oldest = state.getState().find(({ status }) => status === "open");
+      if (oldest) close(oldest.id);
+    },
 
-      clear: () =>
-        get()
-          .pool.filter(({ status }) => status === "open")
-          .forEach(({ id }) => close(id)),
+    clear: () =>
+      state
+        .getState()
+        .filter(({ status }) => status === "open")
+        .forEach(({ id }) => close(id)),
 
-      addProvider: (provider) =>
-        set(({ providers }) => ({
-          providers: [
-            ...providers.filter(({ id }) => id !== provider.id),
-            provider,
-          ],
-        })),
+    addProvider: (provider) =>
+      providers.setState([
+        ...providers.getState().filter(({ id }) => id !== provider.id),
+        provider,
+      ]),
 
-      removeProvider: (providerId) =>
-        set(({ pool, providers }) => {
-          const remaining = providers.filter(({ id }) => id !== providerId);
-          return {
-            providers: remaining,
-            pool:
-              remaining.length === 0
-                ? pool.filter(({ status }) => status === "open")
-                : pool,
-          };
-        }),
-    };
-  });
+    removeProvider: (providerId) => {
+      const remaining = providers
+        .getState()
+        .filter(({ id }) => id !== providerId);
+      providers.setState(remaining);
+      if (remaining.length === 0) {
+        setPool((pool) => pool.filter(({ status }) => status === "open"));
+      }
+    },
+  };
+};

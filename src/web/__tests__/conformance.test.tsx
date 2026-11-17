@@ -90,7 +90,7 @@ const wheel = async (
 };
 
 const pool = (client: Awaited<ReturnType<typeof setup>>["client"]) =>
-  client.store.getState().pool;
+  client.store.pool.getState();
 
 const drivers: [string, ToastItemDriver][] = [
   ["vanilla", VanillaToastItem],

@@ -1,5 +1,6 @@
 import { type ElementType, useId, useMemo } from "react";
 
+import { useToastsSelector } from "../hooks/use-toasts-selector";
 import {
   RendererContextProvider,
   useProviderDepth,
@@ -24,14 +25,14 @@ export const createToastsRenderer = ({
   const Provider = ({ children }: ToastsProviderProps) => {
     const id = useId();
     const depth = useProviderDepth() + 1;
-    const active = store(
-      ({ providers }) => selectActiveProviderId(providers) === id,
+    const active = useToastsSelector(
+      store.providers,
+      (providers) => selectActiveProviderId(providers) === id,
     );
 
     useIsomorphicLayoutEffect(() => {
-      const { addProvider, removeProvider } = store.getState();
-      addProvider({ id, depth });
-      return () => removeProvider(id);
+      store.addProvider({ id, depth });
+      return () => store.removeProvider(id);
     }, [id, depth]);
 
     const value = useMemo(() => ({ store, components, depth }), [depth]);

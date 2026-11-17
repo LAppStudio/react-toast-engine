@@ -28,7 +28,7 @@ export const useToastItem = (
 
   useEffect(() => {
     const current = createToastTimer(durationInMs, () =>
-      store.getState().close(id, "auto"),
+      store.close(id, "auto"),
     );
     timer.current = current;
     return () => current.clear();
@@ -40,7 +40,7 @@ export const useToastItem = (
   }, [running, version]);
 
   return useMemo(() => {
-    const dismiss = () => store.getState().close(id, "dismiss");
+    const dismiss = () => store.close(id, "dismiss");
     return {
       handlers: {
         onInteractionStart: () => setInteractions((count) => count + 1),
@@ -48,10 +48,10 @@ export const useToastItem = (
           setInteractions((count) => Math.max(0, count - 1)),
         onDismiss: dismiss,
         onPress: () => {
-          const current = store.getState().pool.find((item) => item.id === id);
+          const current = store.pool.getState().find((item) => item.id === id);
           if (current) current.actions?.onPress?.(current);
         },
-        onExited: () => store.getState().finalize(id),
+        onExited: () => store.finalize(id),
       },
       actions: { dismiss },
     };
