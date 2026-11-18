@@ -1,0 +1,11 @@
+{
+  "advisories": [
+    {
+      "id": 1247710,
+      "package": "picomatch",
+      "reason": "No patched version exists: every release up to 4.0.7, the latest, is vulnerable (CVE-2026-112366). The ReDoS needs an attacker-supplied glob pattern, and the tools that use picomatch here only run the glob patterns defined in this repository's configs.",
+      "affects": "Development tooling only, through devDependencies: tsdown (build), vite and vitest (tests), typescript-eslint (lint) and Metro, via the react-native devDependency. picomatch is not imported by dist/ and is not installed by apps that use the package.",
+      "reviewBy": "2027-02-17"
+    }
+  ]
+}

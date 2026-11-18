@@ -1,12 +1,17 @@
-import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
+import {
+  collectAdvisories,
+  isAtOrAbove,
+  readAuditLines,
+  SEVERITIES,
+} from "./yarn-audit.mjs";
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
-const SEVERITIES = ["info", "low", "moderate", "high", "critical"];
 const CODE_EXTENSIONS = [".js", ".cjs", ".mjs"];
 
 const IMPORT_PATTERNS = [
@@ -105,44 +110,6 @@ const collectProductionClosure = (roots) => {
   );
 };
 
-const readAuditLines = (input) => {
-  const output = input
-    ? readFileSync(resolve(input), "utf8")
-    : spawnSync("yarn", ["audit", "--json"], {
-        cwd: ROOT,
-        encoding: "utf8",
-        maxBuffer: 256 * 1024 * 1024,
-        shell: process.platform === "win32",
-      }).stdout;
-  return output
-    .split("\n")
-    .filter((line) => line.trim().startsWith("{"))
-    .map((line) => JSON.parse(line));
-};
-
-const collectAdvisories = (lines) => {
-  const advisories = new Map();
-  lines
-    .filter(({ type }) => type === "auditAdvisory")
-    .forEach(({ data: { advisory, resolution } }) => {
-      const entry = advisories.get(advisory.id) ?? {
-        id: advisory.id,
-        module: advisory.module_name,
-        severity: advisory.severity,
-        title: advisory.title,
-        vulnerable: advisory.vulnerable_versions,
-        patched: advisory.patched_versions,
-        url: advisory.url,
-        versions: new Set(),
-        paths: new Set(),
-      };
-      advisory.findings.forEach(({ version }) => entry.versions.add(version));
-      entry.paths.add(resolution.path);
-      advisories.set(advisory.id, entry);
-    });
-  return [...advisories.values()];
-};
-
 const describeOrigin = (name, manifest, imported, inlined) => {
   if (manifest.dependencies?.[name]) {
     return `dependency ${manifest.dependencies[name]}`;
@@ -169,12 +136,9 @@ const main = () => {
   const shipped = options.deep ? collectProductionClosure(direct) : direct;
   direct.forEach((name) => shipped.add(name));
 
-  const advisories = collectAdvisories(readAuditLines(options.input));
-  const threshold = SEVERITIES.indexOf(options.level);
+  const advisories = collectAdvisories(readAuditLines(ROOT, options.input));
   const relevant = advisories.filter(({ module }) => shipped.has(module));
-  const failing = relevant.filter(
-    ({ severity }) => SEVERITIES.indexOf(severity) >= threshold,
-  );
+  const failing = relevant.filter(({ severity }) => isAtOrAbove(severity, options.level));
 
   console.log(
     `Bundle packages (${direct.size}): ${[...direct].sort().join(", ") || "none"}`,

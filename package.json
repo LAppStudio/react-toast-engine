@@ -120,6 +120,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check:pkg": "publint --pack npm && attw --pack . --profile node16",
+    "audit:deps": "node scripts/audit.mjs",
     "audit:bundle": "yarn build && node scripts/audit-bundle.mjs"
   },
   "devDependencies": {
