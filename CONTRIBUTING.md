@@ -124,10 +124,11 @@ yarn type-check           # the library
 yarn examples:type-check  # the example apps, against src/
 yarn build
 yarn check:pkg            # publint + are-the-types-wrong
+yarn audit:deps           # yarn audit of every package, minus audit-allowlist.json
 yarn audit:bundle         # yarn audit limited to packages that ship with the bundle
 ```
 
-CI runs `lint`, `type-check`, `test`, `build`, `check:pkg` and `audit:bundle` on every pull request. Lefthook runs ESLint on staged files before each commit, and `yarn audit` and `yarn test` before each push.
+CI runs `lint`, `type-check`, `test`, `build`, `check:pkg` and `audit:bundle` on every pull request. Lefthook runs ESLint on staged files before each commit, and `yarn audit:deps` and `yarn test` before each push.
 
 ### Web drivers
 
@@ -143,6 +144,30 @@ The drivers' animations and gestures have no automated tests yet. Before opening
 - a fast swipe dismisses, a slow or stopped one springs back;
 - `Loading → done` updates the toast in place;
 - reduced motion (system settings) disables the animations.
+
+### Dependency audit
+
+`yarn audit:deps` runs `yarn audit` over every package in the lockfile, including build and test tooling, and fails on any advisory that is not in `audit-allowlist.json`. The pre-push hook runs it.
+
+Allow-list an advisory only when it can't be fixed by upgrading, for example when no patched version exists, and when it doesn't reach users. Each entry needs:
+
+| Field | Description |
+|---|---|
+| `id` | Advisory id, as printed by `yarn audit:deps`. |
+| `package` | Vulnerable package. It must match the advisory, so a reused id can't hide another package. |
+| `reason` | Why it is safe to ignore for now. |
+| `affects` | Which part of the project pulls it in, such as build, tests, lint or the published package. |
+| `reviewBy` | Date, such as `2027-02-17`. After it, the entry is no longer honored and the audit fails until someone reviews it and sets a new date, or removes it. |
+
+The script also points out entries that no longer appear in the audit, so they can be removed once the package is fixed.
+
+| Option | Description |
+|---|---|
+| `--level <severity>` | Fail only at or above `info`, `low` (default), `moderate`, `high` or `critical`. |
+| `--input <file>` | Read a saved `yarn audit --json` output instead of running the audit. |
+| `--today <date>` | Check `reviewBy` against this date instead of today. |
+
+It exits with `1` when an advisory at or above the level is not allow-listed, and with `2` on usage errors or an invalid allow-list.
 
 ### Bundle audit
 

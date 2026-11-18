@@ -9,7 +9,7 @@ pre-push:
     - name: packages audit
       tags:
         - security
-      run: yarn audit
+      run: yarn -s audit:deps
 
     - name: test
       tags:
